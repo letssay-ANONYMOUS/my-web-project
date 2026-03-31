@@ -3,7 +3,7 @@ import { CreditCard } from 'lucide-react';
 import { CartContext } from '../context/CartContext';
 import { Button } from '../components/common/Button';
 
-export function CheckoutPage({ navigate, user, orderService }) {
+export function CheckoutPage({ navigate, user, orderService, isFirebaseEnabled }) {
   const { cart, total, clearCart } = useContext(CartContext);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -11,7 +11,14 @@ export function CheckoutPage({ navigate, user, orderService }) {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (!user) return;
+
+    if (!isFirebaseEnabled) {
+      clearCart();
+      setStep(3);
+      return;
+    }
+
+    if (!user || !orderService) return;
     setLoading(true);
     try {
       await orderService.placeOrder(user.uid, {

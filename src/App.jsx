@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
-import { auth, db, appId } from './config/firebase';
+import { auth, db, appId, isFirebaseEnabled } from './config/firebase';
 import { CartProvider } from './context/CartContext';
 import { APP_DATA, SEED_MENU } from './data/constants';
 import { MenuService } from './services/menuService';
@@ -19,14 +19,16 @@ import { AboutPage } from './pages/AboutPage';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
-  const [user, setUser] = useState(null);
-  const [menuItems, setMenuItems] = useState([]);
+  const [user, setUser] = useState(isFirebaseEnabled ? null : { uid: 'local-user' });
+  const [menuItems, setMenuItems] = useState(SEED_MENU);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const menuService = useMemo(() => new MenuService(db, appId, SEED_MENU), []);
   const orderService = useMemo(() => new OrderService(db, appId), []);
 
   useEffect(() => {
+    if (!isFirebaseEnabled || !auth) return undefined;
+
     const initAuth = async () => {
       if (globalThis.__initial_auth_token) {
         await signInWithCustomToken(auth, globalThis.__initial_auth_token);
@@ -41,6 +43,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!isFirebaseEnabled || !db) return;
     if (!user) return;
 
     menuService
@@ -60,7 +63,14 @@ export default function App() {
       case 'menu':
         return <MenuPage navigate={setCurrentPage} />;
       case 'checkout':
-        return <CheckoutPage navigate={setCurrentPage} user={user} orderService={orderService} />;
+        return (
+          <CheckoutPage
+            navigate={setCurrentPage}
+            user={user}
+            orderService={orderService}
+            isFirebaseEnabled={isFirebaseEnabled}
+          />
+        );
       case 'locations':
         return <LocationsPage />;
       case 'catering':
