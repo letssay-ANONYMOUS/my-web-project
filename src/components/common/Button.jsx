@@ -13,8 +13,6 @@ export function Button({
     secondary: 'border border-[#1C1C1C] text-[#1C1C1C]',
     white: 'border border-white text-white'
   };
-  const hoverTextClass =
-    variant === 'white' ? 'group-hover:text-[#1C1C1C]' : 'group-hover:text-[#F2F0E9]';
 
   return (
     <button
@@ -24,7 +22,7 @@ export function Button({
       disabled={disabled}
     >
       <span className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-[#1C1C1C]" />
-      <span className={`relative z-10 ${hoverTextClass}`}>
+      <span className={`relative z-10 group-hover:${variant === 'white' ? 'text-[#1C1C1C]' : 'text-[#F2F0E9]'}`}>
         {children}
       </span>
     </button>
